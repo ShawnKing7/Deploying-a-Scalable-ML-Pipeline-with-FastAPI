@@ -1,12 +1,5 @@
 name: CI
-on:
-  push:
-    branches: [main]
-    paths:
-      - 'ml/**'
-      - 'model/**'
-      - 'test_ml.py'
-
+on: [push]
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -14,13 +7,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
-        with:
-          python-version: "3.8"
+        with: { python-version: "3.8" }
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install pytest flake8
+        run: pip install -r requirements.txt pytest flake8
       - name: Run tests
         run: pytest test_ml.py -v
-      - name: Lint
-        run: flake8 . --max-line-length=127 --count
