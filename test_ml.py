@@ -57,3 +57,6 @@ def test_saved_artifacts():
     assert os.path.exists("model/model.pkl"), "Model file missing"
     assert os.path.exists("model/encoder.pkl"), "Encoder file missing"
     assert os.path.exists("model/lb.pkl"), "Label binarizer file missing"
+
+
+
