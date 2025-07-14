@@ -7,8 +7,17 @@ jobs:
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
-        with: { python-version: "3.8" }
+        with:
+          python-version: "3.8"
       - name: Install dependencies
-        run: pip install -r requirements.txt pytest flake8
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install pytest flake8
       - name: Run tests
-        run: pytest test_ml.py -v
+        run: |
+          cd ${{ github.workspace }}
+          python -m pytest test_ml.py -v
+      - name: Lint
+        run: |
+          cd ${{ github.workspace }}
+          python -m flake8 . --max-line-length=127
