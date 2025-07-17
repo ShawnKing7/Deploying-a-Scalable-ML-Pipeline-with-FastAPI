@@ -38,7 +38,7 @@ async def welcome():
     return {"message": "Welcome to the Income Prediction API!"}
 
 
-@app.post("/predict")
+@app.post("/data/")
 async def predict(data: Data):
     try:
         # Convert data to DataFrame

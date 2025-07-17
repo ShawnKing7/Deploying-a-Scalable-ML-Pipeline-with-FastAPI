@@ -16,8 +16,10 @@ data = {
     "hours-per-week": 40,
     "native-country": "United-States"
 }
-
 try:
+    response = requests.get("http://127.0.0.1:8000")
+    print("Status Code:", response.status_code)
+    print("Raw Response:", response.text)
     response = requests.post("http://127.0.0.1:8000/data/", json=data)
     print("Status Code:", response.status_code)
     print("Headers:", response.headers)
