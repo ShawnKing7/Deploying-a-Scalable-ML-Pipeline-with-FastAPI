@@ -60,7 +60,7 @@ def inference(model, X):
         Predictions from the model.
     """
     # TODO: implement the function
-    pass
+    return model.predict(X)
 
 def save_model(model, path):
     """ Serializes model to a file.
@@ -126,3 +126,7 @@ def performance_on_categorical_slice(
     preds = None # your code here to get prediction on X_slice using the inference function
     precision, recall, fbeta = compute_model_metrics(y_slice, preds)
     return precision, recall, fbeta
+
+def apply_label(pred):
+    """Convert 0/1 prediction to label string."""
+    return "<=50K" if pred == 0 else ">50K"
