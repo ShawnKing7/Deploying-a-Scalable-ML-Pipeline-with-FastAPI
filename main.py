@@ -1,74 +1,73 @@
 import os
-
 import pandas as pd
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
+import joblib
+from ml.data import process_data, apply_label
+from ml.model import inference
 
-from ml.data import apply_label, process_data
-from ml.model import inference, load_model
 
 # DO NOT MODIFY
 class Data(BaseModel):
-    age: int = Field(..., example=37)
-    workclass: str = Field(..., example="Private")
-    fnlgt: int = Field(..., example=178356)
-    education: str = Field(..., example="HS-grad")
-    education_num: int = Field(..., example=10, alias="education-num")
-    marital_status: str = Field(
-        ..., example="Married-civ-spouse", alias="marital-status"
-    )
-    occupation: str = Field(..., example="Prof-specialty")
-    relationship: str = Field(..., example="Husband")
+    age: int = Field(..., example=39)
+    workclass: str = Field(..., example="State-gov")
+    fnlgt: int = Field(..., example=77516)
+    education: str = Field(..., example="Bachelors")
+    education_num: int = Field(..., example=13, alias="education-num")
+    marital_status: str = Field(..., example="Never-married", alias="marital-status")
+    occupation: str = Field(..., example="Adm-clerical")
+    relationship: str = Field(..., example="Not-in-family")
     race: str = Field(..., example="White")
     sex: str = Field(..., example="Male")
-    capital_gain: int = Field(..., example=0, alias="capital-gain")
+    capital_gain: int = Field(..., example=2174, alias="capital-gain")
     capital_loss: int = Field(..., example=0, alias="capital-loss")
     hours_per_week: int = Field(..., example=40, alias="hours-per-week")
     native_country: str = Field(..., example="United-States", alias="native-country")
 
-path = None # TODO: enter the path for the saved encoder 
-encoder = load_model(path)
 
-path = None # TODO: enter the path for the saved model 
-model = load_model(path)
+app = FastAPI()
 
-# TODO: create a RESTful API using FastAPI
-app = None # your code here
+# Load model components
+model = joblib.load("model/model.pkl")
+encoder = joblib.load("model/encoder.pkl")
+lb = joblib.load("model/lb.pkl")
 
-# TODO: create a GET on the root giving a welcome message
+
 @app.get("/")
-async def get_root():
-    """ Say hello!"""
-    # your code here
-    pass
+async def welcome():
+    return {"message": "Welcome to the Income Prediction API!"}
 
 
-# TODO: create a POST on a different path that does model inference
 @app.post("/data/")
-async def post_inference(data: Data):
-    # DO NOT MODIFY: turn the Pydantic model into a dict.
-    data_dict = data.dict()
-    # DO NOT MODIFY: clean up the dict to turn it into a Pandas DataFrame.
-    # The data has names with hyphens and Python does not allow those as variable names.
-    # Here it uses the functionality of FastAPI/Pydantic/etc to deal with this.
-    data = {k.replace("_", "-"): [v] for k, v in data_dict.items()}
-    data = pd.DataFrame.from_dict(data)
+async def predict(data: Data):
+    try:
+        # Convert data to DataFrame
+        data_dict = data.dict(by_alias=True)
+        data_df = pd.DataFrame([data_dict])
 
-    cat_features = [
-        "workclass",
-        "education",
-        "marital-status",
-        "occupation",
-        "relationship",
-        "race",
-        "sex",
-        "native-country",
-    ]
-    data_processed, _, _, _ = process_data(
-        # your code here
-        # use data as data input
-        # use training = False
-        # do not need to pass lb as input
-    )
-    _inference = None # your code here to predict the result using data_processed
-    return {"result": apply_label(_inference)}
+        # Process data
+        cat_features = [
+            "workclass",
+            "education",
+            "marital-status",
+            "occupation",
+            "relationship",
+            "race",
+            "sex",
+            "native-country"
+        ]
+        X, _, _, _ = process_data(
+            data_df,
+            categorical_features=cat_features,
+            label=None,
+            training=False,
+            encoder=encoder,
+            lb=lb
+        )
+
+        # Predict and return
+        pred = inference(model, X)
+        #return {"prediction": apply_label(pred)}
+        return "Hello from prediction function"
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
